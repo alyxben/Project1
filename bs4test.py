@@ -43,18 +43,22 @@ def get_book_urls(fullCategoryUrl):
             url = url.find('a')
             url = url['href']
             book_urls.append('https://books.toscrape.com/catalogue/' + url)
-    nextPage = bookHtml.find(class_='next')
-    nextPage = nextPage.find('a')['href']
-    if nextPage is not None:
-        nextPageUrl = base_url + nextPage
-        response = requests.get(nextPageUrl)
-        bookHtml = BeautifulSoup(response.text, 'html.parser')
-        p = bookHtml.findAll('h3')
-        for url in p:
-            url = url.find('a')
-            url = url['href']
-            book_urls.append('https://books.toscrape.com/catalogue/' + url)
-        return book_urls
+    try:
+        nextPage = bookHtml.find(class_='next')
+        nextPage = nextPage.find('a')['href']
+        if nextPage is not None:
+            nextPageUrl = base_url + nextPage
+            response = requests.get(nextPageUrl)
+            bookHtml = BeautifulSoup(response.text, 'html.parser')
+            p = bookHtml.findAll('h3')
+            for url in p:
+                url = url.find('a')
+                url = url['href']
+                book_urls.append('https://books.toscrape.com/catalogue/' + url)
+    except:
+        pass
+    # print(book_urls)
+    return book_urls
 
 
 def get_book_items(book_url):
@@ -110,6 +114,7 @@ for url in categoryLinks:
 for link in fullCategoryUrl:
     bookLinks = get_book_urls(link)
     bookUrls.append(base_url + link)
+print("Les livres===",bookLinks)
 
 # book_items = get_book_items(book_url)
 # print(book_items)
