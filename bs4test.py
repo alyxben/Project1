@@ -105,16 +105,18 @@ def get_book_items(book_url):
 categoryLinks = parse_categories_url(base_url)
 book_urls = []
 book_Items = []
-n = 1
+n = 2
 for link in categoryLinks:
     booklinks = get_book_urls(link)
     book_urls.append(booklinks)
-    for cat in book_urls:
-        print('CATEGORY', n)
-        n += 1
-        for url in cat:
-            bookurlitem = str(url)
-            bookItems = get_book_items(url)
-            book_Items.append(bookurlitem)
-            book_Items.append(bookItems)
-            print(bookItems)
+for l in book_urls:
+    for url in l:
+        bookitems = get_book_items(url)
+        book_Items.append(bookitems)
+        with open('bookstuff.csv','w') as f:
+            writer = csv.writer(f)
+            writer.writerows(book_Items)
+
+
+
+
