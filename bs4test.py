@@ -23,7 +23,8 @@ def parse_categories_url(base_url):
         urls = urls[1:]
         for url in urls:
             url = url['href']
-            category_urls.append(url)
+            url = url.replace('index.html', '')
+            category_urls.append('https://books.toscrape.com/' + url)
     return category_urls
 
 
@@ -42,22 +43,21 @@ def get_book_urls(fullCategoryUrl):
         for url in p:
             url = url.find('a')
             url = url['href']
-            book_urls.append('https://books.toscrape.com/catalogue/' + url)
+            book_urls.append('https://books.toscrape.com/catalogue/category/books' + url)
     try:
         nextPage = bookHtml.find(class_='next')
         nextPage = nextPage.find('a')['href']
         if nextPage is not None:
-            nextPageUrl = base_url + nextPage
+            nextPageUrl = fullCategoryUrl + nextPage
             response = requests.get(nextPageUrl)
             bookHtml = BeautifulSoup(response.text, 'html.parser')
             p = bookHtml.findAll('h3')
             for url in p:
                 url = url.find('a')
                 url = url['href']
-                book_urls.append('https://books.toscrape.com/catalogue/' + url)
+                book_urls.append('https://books.toscrape.com/catalogue/category/books' + url)
     except:
         pass
-    # print(book_urls)
     return book_urls
 
 
@@ -69,7 +69,7 @@ def get_book_items(book_url):
     """
     response = requests.get(book_url)
     if response.ok:
-        bookItems = []
+        book_Items = []
         bookhtml = BeautifulSoup(response.text, features='html.parser')  # Load HTML page in bookHTML
         product_page = bookhtml.find(class_='product_page')  # Load class 'product_page' in product_page
         image_url = bookhtml.find('img').attrs['src']  # Load the src attribute that contains the short link of the image
@@ -78,47 +78,43 @@ def get_book_items(book_url):
         tds = bookhtml.findAll('tr')
         for tr in tds:
             td = tr.find('td')  # Load all tr elements in td and add them
-            bookItems.append(td.text)  # to bookITEMS
-        del bookItems[1]  # Delete non needed elements of the list
-        del bookItems[5]
-        del bookItems[3]
+            book_Items.append(td.text)  # to bookITEMS
+        del book_Items[1]  # Delete non needed elements of the list
+        del book_Items[5]
+        del book_Items[3]
         title = bookhtml.find('h1').text  # Load the h1 tag in title
-        bookItems.append(title)  # add it to bookItems
-        bookItems[1] = bookItems[1][1:]  # Slice the first letter of the price excluding tax
-        bookItems[2] = bookItems[2][1:]  # Slice the first letter of the price including tax
+        book_Items.append(title)  # add it to bookItems
+        book_Items[1] = book_Items[1][1:]  # Slice the first letter of the price excluding tax
+        book_Items[2] = book_Items[2][1:]  # Slice the first letter of the price including tax
         category = bookhtml.findAll('li')[2].text
-        bookItems.append(category.strip())
+        book_Items.append(category.strip())
         p = product_page.findAll('p')  # parse al p elements in product_page
         description = p[3]  # load product description in description
         rating = p[2]  # load rating
         rating = rating.attrs['class']
         rating = rating[1]
-        bookItems.append(description.text)
-        bookItems.append(rating)
-        bookItems.append(image_url)
-        img_data = wget.download(image_url)
-        with open('image.jpg', 'wb') as handler:
-            handler.write(img_data)
+        book_Items.append(description.text)
+        book_Items.append(rating)
+        book_Items.append(image_url)
+        #image_data = wget.download(image_url)
 
-        return bookItems
+        return book_Items
 
 
-bookUrls = []
-fullCategoryUrl = []
+
 categoryLinks = parse_categories_url(base_url)
-for url in categoryLinks:
-    fullCategoryUrl.append(base_url + url)
-
-
-
-for link in fullCategoryUrl:
-    bookLinks = get_book_urls(link)
-    bookUrls.append(base_url + link)
-print("Les livres===",bookLinks)
-
-# book_items = get_book_items(book_url)
-# print(book_items)
-
-# with open('test.csv', 'w') as f:
-# writefile = csv.writer(f)
-# writefile.writerow(book_items)
+book_urls = []
+book_Items = []
+n = 1
+for link in categoryLinks:
+    booklinks = get_book_urls(link)
+    book_urls.append(booklinks)
+    for cat in book_urls:
+        print('CATEGORY', n)
+        n += 1
+        for url in cat:
+            bookurlitem = str(url)
+            bookItems = get_book_items(url)
+            book_Items.append(bookurlitem)
+            book_Items.append(bookItems)
+            print(bookItems)
