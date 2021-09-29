@@ -100,6 +100,14 @@ def get_book_items(book_url):
 
         return book_Items
 
+# Indice ou Guide
+"""Ecrire une fonction write_file_csv(infos_livre, nom_categorie) qui ouvre un fichier csv avec pour nom
+la categorie passé en parametre, puis enregistre les infos "infos_livre" recu dans le csv.
+Nb: infos_livre=>book_Items, nom fichier csv => nom_categorie
+"""
+
+"""Ecrire fonction function_image(lien_image_du_livre, nom_categorie) qui utilise path et wget pour classer
+   en fonction des parametres "lien_image_livre, nom_categorie"""
 
 
 categoryLinks = parse_categories_url(base_url)
