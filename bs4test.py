@@ -1,9 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-import path
 import wget
-
+from path import Path
 
 base_url = 'https://books.toscrape.com/'
 
@@ -100,31 +99,45 @@ def get_book_items(book_url):
 
         return book_Items
 
-# Indice ou Guide
-"""Ecrire une fonction write_file_csv(infos_livre, nom_categorie) qui ouvre un fichier csv avec pour nom
-la categorie passé en parametre, puis enregistre les infos "infos_livre" recu dans le csv.
-Nb: infos_livre=>book_Items, nom fichier csv => nom_categorie
-"""
+def write_file_csv(category, book_Items):
+    with open(category + '.csv','w+') as f:
+        fieldnames = ['Universal_product_code','Price_no_tax','Price_with_tax','Stock','Title','Category','Description','Rating','Image_url','Book_url']
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writerow({fieldnames[0]:book_Items[0],
+                          fieldnames[1]:book_Items[1],
+                          fieldnames[2]:book_Items[2],
+                          fieldnames[3]:book_Items[3],
+                          fieldnames[4]:book_Items[4],
+                          fieldnames[5]:book_Items[5],
+                          fieldnames[6]:book_Items[6],
+                          fieldnames[7]:book_Items[7],
+                          fieldnames[8]:book_Items[8],
+                          fieldnames[9]:book_Items[9]})
 
-"""Ecrire fonction function_image(lien_image_du_livre, nom_categorie) qui utilise path et wget pour classer
-   en fonction des parametres "lien_image_livre, nom_categorie"""
+def function_image(book_img_url, category):
+    book_cover = 'Book_covers'
+    path = f'{book_cover}/{category}'
+    Path(path).mkdir(parents=True, exist_ok=True)
+    wget.download(book_img_url, path)
+
 
 
 categoryLinks = parse_categories_url(base_url)
 book_urls = []
-book_Items = []
-n = 2
+n = 0
 for link in categoryLinks:
     booklinks = get_book_urls(link)
     book_urls.append(booklinks)
 for l in book_urls:
+    print('NEW CATEGORY !!!')
+    print(l)
     for url in l:
         bookitems = get_book_items(url)
-        book_Items.append(bookitems)
-        with open('bookstuff.csv','w') as f:
-            writer = csv.writer(f)
-            writer.writerows(book_Items)
-
+        bookitems.append(url)
+        category = bookitems[5]
+        image_url = bookitems[8]
+        function_image(image_url,category)
+        #write_file_csv(category, bookitems)
 
 
 
