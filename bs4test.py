@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import wget
-from path import Path
+from pathlib import Path
 
 base_url = 'https://books.toscrape.com/'
 
@@ -103,6 +103,7 @@ def write_file_csv(category, book_Items):
     with open(category + '.csv','w+') as f:
         fieldnames = ['Universal_product_code','Price_no_tax','Price_with_tax','Stock','Title','Category','Description','Rating','Image_url','Book_url']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
         writer.writerow({fieldnames[0]:book_Items[0],
                           fieldnames[1]:book_Items[1],
                           fieldnames[2]:book_Items[2],
@@ -118,7 +119,7 @@ def function_image(book_img_url, category):
     book_cover = 'Book_covers'
     path = f'{book_cover}/{category}'
     Path(path).mkdir(parents=True, exist_ok=True)
-    wget.download(book_img_url, path)
+    wget.download(book_img_url, path, bar=None)
 
 
 
