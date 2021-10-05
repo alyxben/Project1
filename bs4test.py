@@ -17,15 +17,18 @@ def parse_categories_url(base_url):
     """
     response = requests.get(base_url)
     if response.ok:
-        category_urls = []
+        category_urls = {}
         bookhtml = BeautifulSoup(response.text, features='html.parser')
         p = bookhtml.find_all('ul')[1]
         urls = p.find_all(href=True)
         urls = urls[1:]
         for url in urls:
+            titre = url.text.strip()
+            # print("====",titre)
             url = url['href']
             url = url.replace('index.html', '')
-            category_urls.append('https://books.toscrape.com/' + url)
+            # category_urls.append('https://books.toscrape.com/' + url)
+            category_urls[titre]='https://books.toscrape.com/' + url
     return category_urls
 
 
@@ -76,6 +79,7 @@ def get_book_items(book_url):
         image_url = bookhtml.find('img').attrs['src']  # Load the src attribute that contains the short link of the image
         image_url = image_url[6:]
         image_url = base_url + image_url
+        # print("image_url", image_url)
         tds = bookhtml.findAll('tr')
         for tr in tds:
             td = tr.find('td')  # Load all tr elements in td and add them
@@ -87,7 +91,7 @@ def get_book_items(book_url):
         book_Items.append(title)  # add it to bookItems
         book_Items[1] = book_Items[1][1:]  # Slice the first letter of the price excluding tax
         book_Items[2] = book_Items[2][1:]  # Slice the first letter of the price including tax
-        category = bookhtml.findAll('li')[2].text
+        category = bookhtml.findAll('li')[2].text.strip()
         book_Items.append(category.strip())
         p = product_page.findAll('p')  # parse al p elements in product_page
         description = p[3]  # load product description in description
@@ -99,49 +103,79 @@ def get_book_items(book_url):
         book_Items.append(image_url)
         #image_data = wget.download(image_url)
 
-        return book_Items
+        return {'link': book_url,                
+                'upc': book_Items[0],
+                'title': title,
+                'price_including_tax': book_Items[2],
+                'price_excluding_tax': book_Items[1],
+                'Availability': book_Items[3],
+                'product_description': description,
+                'category': category,
+                'rating': rating,
+                'image_url': image_url,
+                }
 
-def write_file_csv(category, book_items_list):
-    with open(category + '.csv','w+') as f:
+def write_file_csv(book_items_list,category):
+    with open(f'{category}.csv', 'w', newline='', encoding='iso-8859-1') as f:
         fieldnames = ['Universal_product_code','Price_no_tax','Price_with_tax','Stock','Title','Category','Description','Rating','Image_url','Book_url']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for book_items in book_items_list:
-            writer.writerow({fieldnames[0]:book_items[0],
-                              fieldnames[1]:book_items[1],
-                              fieldnames[2]:book_items[2],
-                              fieldnames[3]:book_items[3],
-                              fieldnames[4]:book_items[4],
-                              fieldnames[5]:book_items[5],
-                              fieldnames[6]:book_items[6],
-                              fieldnames[7]:book_items[7],
-                              fieldnames[8]:book_items[8],
-                              fieldnames[9]:book_items[9]})
+            writer.writerow({
+                fieldnames[0]:book_items['upc'],
+                fieldnames[1]:book_items['price_excluding_tax'],
+                fieldnames[2]:book_items['price_including_tax'],
+                fieldnames[3]:book_items['Availability'],
+                fieldnames[4]:book_items['title'],
+                fieldnames[5]:book_items['category'],
+                fieldnames[6]:book_items['product_description'],
+                fieldnames[7]:book_items['rating'],
+                fieldnames[8]:book_items['image_url'],
+                fieldnames[9]:book_items['link']}
+                )
 
 def function_image(book_img_url, category):
     book_cover = 'Book_covers'
     path = f'{book_cover}/{category}'
     Path(path).mkdir(parents=True, exist_ok=True)
     wget.download(book_img_url, path, bar=None)
+    
+
+def info_from_category(links):
+    infos = []
+    for link in links:
+        book_info = get_book_items(link)
+        infos.append(book_info)
+        function_image(book_info['image_url'], book_info['category'])
+    return infos
 
 
 
-categoryLinks = parse_categories_url(base_url)
-book_urls = []
-n = 0
-for link in categoryLinks:
-    booklinks = get_book_urls(link)
-    book_urls.append(booklinks)
-for l in book_urls:
-    print('NEW CATEGORY !!!')
-    print(l)
-    book_items_list = []
-    category = str()
-    for url in l:
-        book_items = get_book_items(url)
-        book_items.append(url)
-        category = book_items[5]
-        image_url = book_items[8]
-        #function_image(image_url, category)
-        book_items_list.append(book_items)
-    write_file_csv(category, book_items_list)
+# categoryLinks = parse_categories_url(base_url)
+# book_urls = []
+# n = 0
+# for link in categoryLinks:
+#     booklinks = get_book_urls(link)
+#     book_urls.append(booklinks)
+# for l in book_urls:
+#     print('NEW CATEGORY !!!')
+#     print(l)
+#     book_items_list = []
+#     category = str()
+#     for url in l:
+#         book_items = get_book_items(url)
+#         book_items.append(url)
+#         category = book_items[5]
+#         image_url = book_items[8]
+#         #function_image(image_url, category)
+#         book_items_list.append(book_items)
+#     write_file_csv(category, book_items_list)
+    
+if __name__ == '__main__':
+    ## 
+    categories = parse_categories_url(base_url) 
+    for categorie in categories.keys():
+        # print("categories[categorie] ====>>>", categories[categorie])
+        links = get_book_urls(categories[categorie])
+        info = info_from_category(links)
+        write_file_csv(info, categorie)
