@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import csv
 import wget
 from pathlib import Path
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 base_url = 'https://books.toscrape.com/'
 
@@ -99,21 +101,22 @@ def get_book_items(book_url):
 
         return book_Items
 
-def write_file_csv(category, book_Items):
+def write_file_csv(category, book_items_list):
     with open(category + '.csv','w+') as f:
         fieldnames = ['Universal_product_code','Price_no_tax','Price_with_tax','Stock','Title','Category','Description','Rating','Image_url','Book_url']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerow({fieldnames[0]:book_Items[0],
-                          fieldnames[1]:book_Items[1],
-                          fieldnames[2]:book_Items[2],
-                          fieldnames[3]:book_Items[3],
-                          fieldnames[4]:book_Items[4],
-                          fieldnames[5]:book_Items[5],
-                          fieldnames[6]:book_Items[6],
-                          fieldnames[7]:book_Items[7],
-                          fieldnames[8]:book_Items[8],
-                          fieldnames[9]:book_Items[9]})
+        for book_items in book_items_list:
+            writer.writerow({fieldnames[0]:book_items[0],
+                              fieldnames[1]:book_items[1],
+                              fieldnames[2]:book_items[2],
+                              fieldnames[3]:book_items[3],
+                              fieldnames[4]:book_items[4],
+                              fieldnames[5]:book_items[5],
+                              fieldnames[6]:book_items[6],
+                              fieldnames[7]:book_items[7],
+                              fieldnames[8]:book_items[8],
+                              fieldnames[9]:book_items[9]})
 
 def function_image(book_img_url, category):
     book_cover = 'Book_covers'
@@ -132,13 +135,13 @@ for link in categoryLinks:
 for l in book_urls:
     print('NEW CATEGORY !!!')
     print(l)
+    book_items_list = []
+    category = str()
     for url in l:
-        bookitems = get_book_items(url)
-        bookitems.append(url)
-        category = bookitems[5]
-        image_url = bookitems[8]
-        function_image(image_url,category)
-        #write_file_csv(category, bookitems)
-
-
-
+        book_items = get_book_items(url)
+        book_items.append(url)
+        category = book_items[5]
+        image_url = book_items[8]
+        #function_image(image_url, category)
+        book_items_list.append(book_items)
+    write_file_csv(category, book_items_list)
