@@ -1,27 +1,24 @@
 # Beauty To Scrappe
 
 Beauty To Scrappe is a Python script that connects to 'https://books.toscrape.com/', gets book information and generate csv files sorted by categories corresponding to the site
+## Virtual Environment
 
-## Beautiful Soup 4
-
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Beautiful Soup.
-
+To create the virtual environment
 ```bash
-pip install bs4
+python3 -m venv BeautyToScrappe-env
 ```
-
-## Requests
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install
-requests.
+To activate the virtual environment for MacOS and Unix users
 ```bash
-pip install requests
+source BeautyToScrappe-env/bin/activate
 ```
-
-## Wget
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install
-wget.
+For Windows 
 ```bash
-pip install wget
+tutorial-env\Scripts\activate.bat
+```
+## Install requirements
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install 
+```bash
+pip install -r requirements.txt
 ```
 
 # Execute the script
