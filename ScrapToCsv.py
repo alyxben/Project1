@@ -37,7 +37,6 @@ def get_book_urls(fullCategoryUrl):
     :param fullCategoryUrl: base_url + category url
     :return: book's url stored in list
     """
-
     response = requests.get(fullCategoryUrl)
     if response.ok:
         book_urls = []
@@ -50,7 +49,7 @@ def get_book_urls(fullCategoryUrl):
     try:
         nextPage = bookHtml.find(class_='next')
         nextPage = nextPage.find('a')['href']
-        if nextPage is not None:
+        while nextPage is not None:
             nextPageUrl = fullCategoryUrl + nextPage
             response = requests.get(nextPageUrl)
             bookHtml = BeautifulSoup(response.text, 'html.parser')
@@ -59,6 +58,11 @@ def get_book_urls(fullCategoryUrl):
                 url = url.find('a')
                 url = url['href']
                 book_urls.append('https://books.toscrape.com/catalogue/category/books' + url)
+            try:
+                nextPage = bookHtml.find(class_='next')
+                nextPage = nextPage.find('a')['href']
+            except:
+                pass
     except:
         pass
     return book_urls
@@ -174,6 +178,6 @@ if __name__ == '__main__':
     categories = parse_categories_url(base_url)
     #print(categories)
     for categorie in categories.keys():
-        links = get_book_urls(categories[categorie])    #Load book links
+        links = get_book_urls(categories[categorie])    #Load book links by categories
         info = info_from_category(links)    #Load book info
         write_file_csv(info, categorie) #Generate csv file
